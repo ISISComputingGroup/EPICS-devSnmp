@@ -1,0 +1,19 @@
+
+record(ai, "$(DEV):VoltageRead")
+{
+  field(DESC, "SNMP channel")
+  field(DTYP, "Snmp")
+  field(SCAN, "1 second")
+  field(PREC, "3")
+  field(INP, "@$(HOST) public DISMAN-EVENT-MIB::sysUpTimeInstance ( 100 i")
+}
+
+record(longin, "$(DEV):VoltageRead2")
+{
+  field(DESC, "SNMP channel")
+  field(DTYP, "Snmp")
+  field(SCAN, "1 second")
+  field(INP, "@$(HOST2) public IMAGENT-MIB::sensorTemperatureDegree.2 INTEGER: 100 i")
+}
+
+

@@ -10,7 +10,7 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
-DB += snmp.db
+DB += snmp.db moxa.db
 
 #----------------------------------------------------
 # If <anyname>.db template is not named <anyname>*.template add

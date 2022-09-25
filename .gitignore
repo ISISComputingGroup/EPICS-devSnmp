@@ -3,4 +3,9 @@
 /dbd
 /lib
 O.*
-
+dllPath*.bat
+envPaths
+/WienerCrate/bin/
+/WienerCrate/db/
+/WienerCrate/dbd/
+runIOC.bat

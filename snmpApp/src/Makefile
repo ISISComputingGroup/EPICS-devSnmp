@@ -5,15 +5,16 @@ include $(TOP)/configure/CONFIG
 #=============================
 
 #USR_CFLAGS += -I/usr/local/include        #Path to snmp if ness.
-USR_CFLAGS += `net-snmp-config --cflags`
+USR_CFLAGS_Linux += `net-snmp-config --cflags`
 USR_CFLAGS += -DNETSNMP_NO_INLINE
 
-USR_LDFLAGS += `net-snmp-config --libs`
-PROD_LDLIBS += `net-snmp-config --libs`
+USR_LDFLAGS_Linux += `net-snmp-config --libs`
+PROD_LDLIBS_Linux += `net-snmp-config --libs`
 
-USR_CFLAGS += $(shell $(PERL) ../getNetSNMPversion.pl)
-USR_CPPFLAGS += $(shell $(PERL) ../getNetSNMPversion.pl)
-
+USR_CFLAGS_Linux += $(shell $(PERL) ../getNetSNMPversion.pl)
+USR_CPPFLAGS_Linux += $(shell $(PERL) ../getNetSNMPversion.pl)
+USR_CFLAGS_WIN32 += -DdevSnmp_NETSNMP_VERSION=50900 -I$(NETSNMP)/install/include -DHAVE_STDINT_H
+USR_CPPFLAGS_WIN32 += -DdevSnmp_NETSNMP_VERSION=50900 -I$(NETSNMP)/install/include -DHAVE_STDINT_H
 #==================================================
 # Build an IOC support library
 LIBRARY_IOC += devSnmp
@@ -29,7 +30,12 @@ devSnmp_SRCS += snmpRegister.cpp
 devSnmp_SRCS += snmpSessShow.c
 devSnmp_SRCS += devSnmp.cpp
 
-devSnmp_LIBS += $(EPICS_BASE_IOC_LIBS)
+netsnmp_DIR = $(NETSNMP)/install/lib
+
+devSnmp_LIBS += netsnmp zlib $(EPICS_BASE_IOC_LIBS)
+devSnmp_SYS_LIBS_WIN32 += ws2_32
+# following needed to find OpenSSL library that is auto-linked via #pragma in net-snmp headers
+devSnmp_LDFLAGS_WIN32 += -libpath:$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 
 #=============================
 # build an ioc application

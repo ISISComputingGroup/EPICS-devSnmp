@@ -10,7 +10,9 @@ epicsEnvSet("W", "WIENER-CRATE-MIB::")
 dbLoadDatabase("dbd/snmp.dbd")
 snmp_registerRecordDeviceDriver(pdbbase)
 
-dbLoadRecords("db/snmp.db","DEV=TestChan,HOST=192.168.54.62,CHAN=u300,GROUP=0")
+devSnmpSetSnmpVersion(130.246.53.29,SNMP_VERSION_1)
+devSnmpSetSnmpVersion(130.246.39.191,SNMP_VERSION_1)
+dbLoadRecords("db/moxa.db","DEV=TestChan,HOST=130.246.53.29,HOST2=130.246.39.191,CHAN=u300,GROUP=0")
 
 cd "${TOP}/iocBoot/${IOC}"
 iocInit()
