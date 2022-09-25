@@ -5,6 +5,7 @@ DIRS := $(DIRS) $(filter-out $(DIRS), configure)
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard *App))
 DIRS := $(DIRS) $(filter-out $(DIRS), $(wildcard iocBoot))
 DIRS := $(DIRS) $(filter-out $(DIRS), WienerCrate)
+DIRS := $(DIRS) $(filter-out $(DIRS), NventSGP)
 
 define DIR_template
  $(1)_DEPEND_DIRS = configure
@@ -13,6 +14,7 @@ $(foreach dir, $(filter-out configure,$(DIRS)),$(eval $(call DIR_template,$(dir)
 
 iocBoot_DEPEND_DIRS += $(filter %App,$(DIRS))
 WienerCrate_DEPEND_DIRS += $(filter %App,$(DIRS))
+NventSGP_DEPEND_DIRS += $(filter %App,$(DIRS))
 
 include $(TOP)/configure/RULES_TOP
 

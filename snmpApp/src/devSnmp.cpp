@@ -34,11 +34,25 @@
   #error SCNu64 not defined - check includes/defs
 #endif
 
+// Windows MSVC cannot allocate stack arrays based on a non constant variable, but gcc can
+#ifdef _WIN32
+#include <vector>
+#define MYCONCAT(A,B) A##B
+#define DYNAMIC_STRING(__var,__size) \
+    std::vector<char> MYCONCAT(__var,V)(__size); \
+    char* __var = MYCONCAT(__var,V).data();
+#else
+#define DYNAMIC_STRING(__var,__size) \
+    __var [ __size ];
+#endif
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32
 #include <strings.h>
+#endif
 #include <ctype.h>
 #include <errno.h>
 
@@ -2258,7 +2272,7 @@ bool devSnmp_pv::hasValue()
 bool devSnmp_pv::getValueString(char *str, int maxsize)
 {
   // get raw string
-  char rawData[ oidExtra.data_len ];
+  DYNAMIC_STRING(rawData,oidExtra.data_len);
   if (! getRawValueString(rawData,oidExtra.data_len)) return(false);
 
   // try to locate our mask
@@ -2309,7 +2323,7 @@ bool devSnmp_pv::getValueDouble(double *value)
   }
 
   // otherwise try parsing oid's string value (if there is one)
-  char str[ oidExtra.data_len ];
+  DYNAMIC_STRING(str,oidExtra.data_len);
   if (! getValueString(str,sizeof(str))) return(false);
 #ifdef epicsScanDouble
   // epicsScanDouble is a macro calling epicsParseDouble with a units pointer of NULL
@@ -2349,7 +2363,7 @@ bool devSnmp_pv::getValueLong(long *value)
   }
 
   // otherwise try parsing oid's string value (if there is one)
-  char str[ oidExtra.data_len ];
+  DYNAMIC_STRING(str,oidExtra.data_len);
   if (! getValueString(str,sizeof(str))) return(false);
 
   if (! (oidExtra.special_flags & SPECIAL_FLAG_HEXBITS)) {
@@ -2555,8 +2569,8 @@ void devSnmp_pv::report(int level, char *match)
     return;
   }
 
-  char rstr[oidExtra.data_len];
-  char vstr[oidExtra.data_len];
+  DYNAMIC_STRING(rstr,oidExtra.data_len);
+  DYNAMIC_STRING(vstr,oidExtra.data_len);
   if (! getRawValueString(rstr,sizeof(rstr))) strcpy(rstr,"n/a");
   if (! getValueString(vstr,sizeof(vstr))) strcpy(vstr,"n/a");
   printf("    %s\n",OIDPV_BAR);
@@ -4143,7 +4157,6 @@ extern "C" {
   static long snmpSoInit(struct stringoutRecord *pso);
   static long snmpSoWrite(struct stringoutRecord *pso);
   static long snmpSoReadback(devSnmp_pv *pPV);
-}
 
 // ai
 static struct {
@@ -4286,7 +4299,6 @@ static struct {
 };
 epicsExportAddress(dset,devSnmpSo);
 
-extern "C" {
   typedef struct snmpTypeConvStruct
   {
      char *str;
@@ -4371,7 +4383,7 @@ int devSnmpSetParam(const char *param, int value)
     }
     printf("\ndevSnmp settable parameters\n\n");
     printf("%-*s  value\n",longest,"parameter name");
-    char bar1[longest+1];
+    DYNAMIC_STRING(bar1,longest+1);
     memset(bar1,'-',longest);
     bar1[longest] = 0;
     printf("%s  -----\n",bar1);

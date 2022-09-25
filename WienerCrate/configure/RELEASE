@@ -3,10 +3,11 @@ EPICS_BASE = /usr/lib/epics
 
 TEMPLATE_TOP = $(EPICS_BASE)/templates/makeBaseApp/top
 
+DEVSNMP=$(TOP)/..
+
 ZLIB=$(SUPPORT)/zlib/master
 OPENSSL=$(SUPPORT)/OpenSSL/master
 NETSNMP=$(SUPPORT)/NET-SNMP/master
-DEVSNMP=$(SUPPORT)/devSnmp-nscl/master
 
 include $(TOP)/../../../../ISIS_CONFIG
 -include $(TOP)/../../../../ISIS_CONFIG.$(EPICS_HOST_ARCH)

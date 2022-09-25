@@ -13,9 +13,9 @@ PROD_IOC = nventSgp
 #
 # Pick up the net-snmp support
 #
-USR_CFLAGS += `net-snmp-config --cflags`
-USR_LDFLAGS += `net-snmp-config --libs`
-PROD_LDLIBS += `net-snmp-config --libs`
+USR_CFLAGS_Linux += `net-snmp-config --cflags`
+USR_LDFLAGS_Linux += `net-snmp-config --libs`
+PROD_LDLIBS_Linux += `net-snmp-config --libs`
 
 # nventSgp.dbd will be created and installed
 DBD += nventSgp.dbd

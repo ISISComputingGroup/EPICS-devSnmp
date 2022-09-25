@@ -70,6 +70,7 @@ int snmpHostsShow()
 
 int snmpSessionsShow()
 {
+#ifndef _WIN32
   struct session_list *sessions = Sessions;
   struct snmp_internal_session *isp;
   int i = 0, s;
@@ -85,5 +86,10 @@ int snmpSessionsShow()
     printf("Sessions %d internal %d\n", s, i);
   }
   return(i);
+#else
+    /* Sessions is private to net-snmp library, so need to recode another way */
+    printf("Unable to show sessions on WIN32\n");
+    return 0;
+#endif
 }
 

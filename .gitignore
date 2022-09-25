@@ -8,4 +8,7 @@ envPaths
 /WienerCrate/bin/
 /WienerCrate/db/
 /WienerCrate/dbd/
+/NventSGP/bin/
+/NventSGP/db/
+/NventSGP/dbd/
 runIOC.bat

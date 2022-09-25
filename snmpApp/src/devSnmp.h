@@ -683,8 +683,6 @@ extern "C" {
   int snmpzr(int level, char *match);
 #if devSnmp_NETSNMP_VERSION < 50400
   void init_mib(void);
-#else
-  void netsnmp_init_mib(void);
 #endif
 }  // extern "C"
 
