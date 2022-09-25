@@ -43,7 +43,7 @@
     char* __var = MYCONCAT(__var,V).data();
 #else
 #define DYNAMIC_STRING(__var,__size) \
-    __var [ __size ];
+    char __var [ __size ];
 #endif
 
 #include <stddef.h>
