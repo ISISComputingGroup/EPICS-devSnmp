@@ -56,7 +56,7 @@ snmp_SRCS_vxWorks += -nil-
 # The following adds support from base/src/vxWorks
 snmp_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
 
-snmp_LIBS += devSnmp
+snmp_LIBS += devSnmp netsnmp zlib
 
 # NOTE: To build SNL programs, SNCSEQ must be defined
 # in the <top>/configure/RELEASE file
@@ -77,6 +77,9 @@ ifneq ($(SNCSEQ),)
 endif
 
 snmp_LIBS += $(EPICS_BASE_IOC_LIBS)
+snmp_SYS_LIBS_WIN32 += crypt32
+# following needed to find OpenSSL library that is auto-linked via #pragma in net-snmp headers
+snmp_LDFLAGS_WIN32 += -libpath:$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 
 #===========================
 

@@ -40,7 +40,11 @@ wienerCrateExample_SRCS_vxWorks += -nil-
 #wienerCrateExample_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
 
 # Finally link to the EPICS Base libraries
+wienerCrateExample_LIBS += netsnmp zlib
 wienerCrateExample_LIBS += $(EPICS_BASE_IOC_LIBS)
+wienerCrateExample_SYS_LIBS_WIN32 += crypt32
+# following needed to find OpenSSL library that is auto-linked via #pragma in net-snmp headers
+wienerCrateExample_LDFLAGS_WIN32 += -libpath:$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 
 #===========================
 
