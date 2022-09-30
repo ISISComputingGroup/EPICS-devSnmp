@@ -15,6 +15,7 @@ PROD_IOC = wienerCrateExample
 #
 USR_CFLAGS_Linux += `net-snmp-config --cflags`
 USR_LDFLAGS_Linux += `net-snmp-config --libs`
+USR_LDFLAGS_Linux += -L$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 PROD_LDLIBS_Linux += `net-snmp-config --libs`
 
 # wienerCrateExample.dbd will be created and installed
