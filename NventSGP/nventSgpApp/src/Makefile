@@ -13,7 +13,8 @@ PROD_IOC = nventSgp
 #
 # Pick up the net-snmp support
 #
-USR_CFLAGS_Linux += `net-snmp-config --cflags`
+USR_CFLAGS_Linux += `net-snmp-config --cflags` -fPIC
+USR_CPPFLAGS_Linux += `net-snmp-config --cflags` -fPIC
 USR_LDFLAGS_Linux += `net-snmp-config --libs`
 USR_LDFLAGS_Linux += -L$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 PROD_LDLIBS_Linux += `net-snmp-config --libs`

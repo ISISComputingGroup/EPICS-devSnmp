@@ -5,8 +5,10 @@ include $(TOP)/configure/CONFIG
 #=============================
 
 #USR_CFLAGS += -I/usr/local/include        #Path to snmp if ness.
-USR_CFLAGS_Linux += `net-snmp-config --cflags`
+USR_CFLAGS_Linux += `net-snmp-config --cflags` -fPIC
+USR_CPPFLAGS_Linux += `net-snmp-config --cflags` -fPIC
 USR_CFLAGS += -DNETSNMP_NO_INLINE
+USR_CPPFLAGS += -DNETSNMP_NO_INLINE
 
 USR_LDFLAGS_Linux += `net-snmp-config --libs`
 USR_LDFLAGS_Linux += -L$(OPENSSL)/lib/$(EPICS_HOST_ARCH)

@@ -3307,10 +3307,7 @@ void devSnmp_host::setSnmpV3Param(const char *param, const char *value, bool ign
 
   if (strcasecmp(param,"privType") == 0) {
     // privProtocol -x (AES|DES)
-    if (strcasecmp(value, "DES") == 0) {
-      v3params.securityPrivProto    = snmp_duplicate_objid(usmDESPrivProtocol,USM_PRIV_PROTO_DES_LEN);
-      v3params.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
-    } else if ((strcasecmp(value, "AES") == 0) || (strcasecmp(value, "AES128") == 0)) {
+    if ((strcasecmp(value, "AES") == 0) || (strcasecmp(value, "AES128") == 0)) {
       v3params.securityPrivProto    = snmp_duplicate_objid(usmAESPrivProtocol,USM_PRIV_PROTO_AES_LEN);
       v3params.securityPrivProtoLen = USM_PRIV_PROTO_AES_LEN;
     } else {
