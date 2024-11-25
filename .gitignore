@@ -12,3 +12,4 @@ envPaths
 /NventSGP/db/
 /NventSGP/dbd/
 runIOC.bat
+dllCopy.bat
