@@ -3,7 +3,7 @@ Section: libdevel
 Priority: optional
 Maintainer: John Priller <priller@frib.msu.edu>
 Build-Depends: debhelper (>= 10), epics-debhelper (>= 8.14~),
-               epics-dev,
+               epics-dev | epics7-dev,
                libsnmp-dev,
 Standards-Version: 4.3.0
 Homepage: https://groups.nscl.msu.edu/controls/files/devSnmp.html
@@ -12,15 +12,16 @@ Vcs-Browser: https://stash.frib.msu.edu/projects/EPICS/repos/epics-snmp
 
 Package: epics-snmp-dev
 Architecture: any
-Depends: libdevsnmp1.1.0.4 (= ${binary:Version}), ${shlibs:Depends},
-         ${misc:Depends}, ${epics:Depends},
+Depends: libdevsnmp1.1.0.6 (= ${binary:Version}), ${shlibs:Depends},
+         ${misc:Depends},
+         epics-dev | epics7-dev,
 Description: EPICS support for SNMP devices
  Device support for SNMP-based hardware.
  .
  This package contains dbd, headers, and MIB files required
  for applications.
 
-Package: libdevsnmp1.1.0.4
+Package: libdevsnmp1.1.0.6
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: EPICS support for SNMP devices

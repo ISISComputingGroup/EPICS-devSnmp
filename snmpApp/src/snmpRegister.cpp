@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <epicsTime.h>
 #include <epicsStdioRedirect.h>
 #include "epicsExport.h"
 
