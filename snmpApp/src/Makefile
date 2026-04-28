@@ -84,16 +84,22 @@ snmp_SYS_LIBS_WIN32 += crypt32
 # following needed to find OpenSSL library that is auto-linked via #pragma in net-snmp headers
 snmp_LDFLAGS_WIN32 += -libpath:$(OPENSSL)/lib/$(EPICS_HOST_ARCH)
 
+#un-typed RSET is deprecated in 3.16.1+, but it will always work
+#But, it may change in 7.x
+ifeq ($(EPICS_VERSION),3)
+ifeq ($(EPICS_REVISION),16)
+# 3.16.*
+  USR_CXXFLAGS += -DUSE_TYPED_RSET
+  USR_CFLAGS += -DUSE_TYPED_RSET
+endif
+else
+# not EPICS 3, should be EPICS 7 or above
+  USR_CXXFLAGS += -DUSE_TYPED_RSET
+  USR_CFLAGS += -DUSE_TYPED_RSET
+endif
+
 #===========================
 
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-
-#un-typed RSET is deprecated in 3.16.1+, but it will always work
-#But, it may change in 7.x
-ifeq ($(shell test $(EPICS_VERSION) -ge 7; echo $$?),0)
-  USR_CXXFLAGS += -DUSE_TYPED_RSET
-  USR_CFLAGS += -DUSE_TYPED_RSET
-endif
-
