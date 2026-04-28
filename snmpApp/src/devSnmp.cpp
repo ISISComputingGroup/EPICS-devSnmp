@@ -151,8 +151,9 @@ static int snmpThreadSleepMSec = 20;
 
 // retries and timeout for SNMP base session
 // (timeout is in microseconds)
-static int snmpSessionRetries = 5;
-static int snmpSessionTimeout = 10000000;  // = 1 second
+static int snmpSessionRetries  = 5;
+static int snmpSessionTimeout  = 10000000;  // = 10 seconds
+static int snmpSessionStaleSec = 60;
 
 // MIB range checking
 // is on by default in net-snmp, we reflect that here
@@ -181,6 +182,7 @@ static setParamItem setParamTable[] = {
   { "ThreadSleepMSec",      &snmpThreadSleepMSec,      NULL                 },
   { "SessionRetries",       &snmpSessionRetries,       sessionRetriesChange },
   { "SessionTimeout",       &snmpSessionTimeout,       sessionTimeoutChange },
+  { "SessionStaleSec",      &snmpSessionStaleSec,      NULL                 },
   { "CheckRanges",          &snmpCheckRanges,          checkRangesChange    },
   { NULL,                   NULL,                      NULL                 }
 };
@@ -192,6 +194,14 @@ static setParamItem setParamTable[] = {
 #endif
 #ifndef ISSPACE
   #define ISSPACE(c) ((c == ' ') || (c == '\t'))
+#endif
+
+#define STRING_DELIMETER_HANDLING
+#if defined(STRING_DELIMETER_HANDLING)
+//pcMaskTranslationTable tables to handle the masks properly
+#define TRANSLATION_TABLE_SIZE 4
+char pcMaskTranslationTableIn[] ={'<','(','{','['};
+char pcMaskTranslationTableOut[]={'>',')','}',']'};
 #endif
 
 //--------------------------------------------------------------------
@@ -382,9 +392,9 @@ static bool checkInit(void)
 
   if (! didEpicsInit) {
 #if devSnmp_NETSNMP_VERSION < 50400
-	  init_mib();
+    init_mib();
 #else
-	  netsnmp_init_mib();
+    netsnmp_init_mib();
 #endif
 
     // set last-tick
@@ -1218,16 +1228,35 @@ bool devSnmp_session::open(SNMP_SESSION *psess)
   // error if already opened
   if (session) return(false);
 
-  // open session
-  session = snmp_open(psess);
+  // snmp_open() shallow-copies the input struct, so the opened session shares
+  // the same peername/community pointers as the template.  snmp_close() then
+  // calls SNMP_FREE() on those pointers, leaving the template with dangling
+  // pointers and causing all subsequent opens to fail with "Unknown host".
+  // Pass a temporary copy with freshly duplicated strings so snmp_close()
+  // frees those copies rather than the template's strings.
+  SNMP_SESSION tmp = *psess;
+  tmp.peername  = strdup(psess->peername);
+  tmp.community = (u_char *) strdup((char *) psess->community);
+
+  pOurMgr->sessionMutexLock();
+  session = snmp_open(&tmp);
+  if (!session) {
+    free(tmp.peername);
+    free((void *) tmp.community);
+  }
+  if (session) {
+    session->callback = snmpSessionCallback;
+    session->callback_magic = &ourMagic;
+  }
+  pOurMgr->sessionMutexUnlock();
   if (! session) return(false);
-  session->callback = snmpSessionCallback;
-  session->callback_magic = &ourMagic;
 
   // create PDU
   pdu = snmp_pdu_create( (is_setting) ? SNMP_MSG_SET : SNMP_MSG_GET );
   if (! pdu) {
+    pOurMgr->sessionMutexLock();
     snmp_close(session);
+    pOurMgr->sessionMutexUnlock();
     session = NULL;
     return(false);
   }
@@ -1266,7 +1295,10 @@ bool devSnmp_session::send(void)
   tried_send = true;
 
   bool state;
-  if (snmp_send(session,pdu)) {
+  pOurMgr->sessionMutexLock();
+  bool sendOk = (snmp_send(session,pdu) != 0);
+  pOurMgr->sessionMutexUnlock();
+  if (sendOk) {
     timeSent.start(&globalLastTick);
     sent = true;
     // inc manager's request counter so its read task knows to be reading
@@ -2273,9 +2305,29 @@ bool devSnmp_pv::getValueString(char *str, int maxsize)
 
   // skip over whitespace
   while (ISSPACE(*pc) && ((*pc) != 0)) pc++;
+#if defined(STRING_DELIMETER_HANDLING)
+  if (strlen(oidExtra.mask) == 1) { // && oidExtra.mask[0]=='\"') {
+    char *last_chr = NULL;
+    char cMasklocal;
+    short iX = 0;
 
-  // copy string to caller's buffer
-  copy_string(str,maxsize,pc);
+    cMasklocal = oidExtra.mask[0];
+
+    // search for <{([ and substitute with corresponding >})]
+    for (iX = 0; iX < TRANSLATION_TABLE_SIZE; iX++) {
+      if (cMasklocal == pcMaskTranslationTableIn[iX])
+        cMasklocal=pcMaskTranslationTableOut[iX];
+    }
+
+    // search for the last occurrence of cMasklocal in pc string
+    last_chr = strrchr(pc,cMasklocal);
+    if (last_chr) last_chr[0]='\0';
+    // copy string to caller's buffer
+    copy_string(str,maxsize,pc);
+    if (last_chr) last_chr[0] = oidExtra.mask[0];
+  } else
+#endif
+  copy_string(str,maxsize,pc); // copy string to caller's buffer
 
   // do any special handling applicable
   if (oidExtra.special_flags & SPECIAL_FLAG_PACK) {
@@ -3294,8 +3346,12 @@ void devSnmp_host::setSnmpV3Param(const char *param, const char *value, bool ign
   if (strcasecmp(param,"privType") == 0) {
     // privProtocol -x (AES|DES)
     if (strcasecmp(value, "DES") == 0) {
+#ifdef NETSNMP_DISABLE_DES
+      printf("devSnmp ERROR: SNMPv3 privProtocol DES is disabled in net-snmp build, use AES instead\n");
+#else
       v3params.securityPrivProto    = snmp_duplicate_objid(usmDESPrivProtocol,USM_PRIV_PROTO_DES_LEN);
       v3params.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
+#endif
     } else if ((strcasecmp(value, "AES") == 0) || (strcasecmp(value, "AES128") == 0)) {
       v3params.securityPrivProto    = snmp_duplicate_objid(usmAESPrivProtocol,USM_PRIV_PROTO_AES_LEN);
       v3params.securityPrivProtoLen = USM_PRIV_PROTO_AES_LEN;
@@ -3414,7 +3470,7 @@ void devSnmp_host::processing(epicsTimeStamp *pnow)
   //
   // dispose of any completed GET/SET sessions
   //
-  // we also dispose of sessions that are older than 60 seconds,
+  // we also dispose of sessions that are older than snmpSessionStaleSec seconds,
   // which shouldn't happen but we want to make sure they're deleted
   //
   // if we find any sessions that were sent but aren't complete, we're 'busy'
@@ -3429,8 +3485,8 @@ void devSnmp_host::processing(epicsTimeStamp *pnow)
   for (int ii = sessionCount-1; ii >= 0; ii--) {
     devSnmp_session *pSession = sessionArray[ii];
     if (! pSession) continue;
-    if ((pSession->isCompleted()) || (pSession->secondsSinceCreated(pnow) > 60)) {
-      if ((snmpDebugLevel) && (pSession->secondsSinceCreated(pnow) > 60))
+    if ((pSession->isCompleted()) || (pSession->secondsSinceCreated(pnow) > snmpSessionStaleSec)) {
+      if ((snmpDebugLevel) && (! pSession->isCompleted()))
         printf("*** devSnmp: %s deleted stale session\n",hostName());
       activeSessionList->removeItemAt(ii);
       delete pSession;
@@ -3658,9 +3714,11 @@ int devSnmp_manager::readTask(void)
           readTask_block = 0;
         }
 /**/
+        sessionMutexUnlock();
         readTask_inSelect = true;
         readTask_stat = select(readTask_fds, &readTask_fdset, NULL, NULL, readTask_block ? NULL : &readTask_timeout);
         readTask_inSelect = false;
+        sessionMutexLock();
 
         if (readTask_stat < 0) {
           perror("devSnmp: readTask select() failed");

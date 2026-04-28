@@ -78,3 +78,10 @@ include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
 
+#un-typed RSET is deprecated in 3.16.1+, but it will always work
+#But, it may change in 7.x
+ifeq ($(shell test $(EPICS_VERSION) -ge 7; echo $$?),0)
+  USR_CXXFLAGS += -DUSE_TYPED_RSET
+  USR_CFLAGS += -DUSE_TYPED_RSET
+endif
+

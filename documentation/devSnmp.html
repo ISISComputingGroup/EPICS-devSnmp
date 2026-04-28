@@ -7,9 +7,9 @@
 
 <BODY>
 <H1>EPICS SNMP Device Support Module (NSCL/FRIB)</H1>
-<B>Release 1.1.0.4</B><br>
+<B>Release 1.1.0.6</B><br>
 <B>by John Priller</B><br>
-<B>April 19, 2022</B><br>
+<B>March 25, 2026</B><br>
 
 <h2><u>Contents</u></h2>
 <ul>
@@ -397,7 +397,7 @@ for a helpful little perl script which provides a numeric definition such as:
 
     <tr>
       <td>SessionTimeout</td>
-      <td align="right">1000000</td>
+      <td align="right">10000000</td>
       <td><p>Timeout value to use for underlying SNMP reads.  Units are
           in microseconds.<br><br>
           This is a newly-exposed parameter as of release 1.0.RC8, it is
@@ -412,6 +412,13 @@ for a helpful little perl script which provides a numeric definition such as:
           This is a newly-exposed parameter as of release 1.0.RC8, it is
           unknown whether adjusting it after remote-host communications have
           begun will have any effect.  Feedback appreciated.</p></td>
+    </tr>
+
+    <tr>
+      <td>SessionStaleSec</td>
+      <td align="right">60</td>
+      <td><p>How long to leave a non-completed transation session (get or set)
+             open before flagging it as stale and deleting it.</p></td>
     </tr>
 
     <tr>
@@ -652,6 +659,13 @@ for a helpful little perl script which provides a numeric definition such as:
 </dl>
 
 <h2 id="Versions"><u>Version history</u></h2>
+        <p>1.1.0.6: Add improved string delimiter handling, courtesy of <a href="mailto:mdach@lbl.gov">Miroslaw Dach</a>.
+           Detect at compile time whether DES is disabled in net-snmp library.
+           Add patches from <a href="mailto:anders.lindholsson@ess.eu">Anders Lindh Olsson</a> to address issues
+           with sequential connects and provide greater thread safety.</p>
+
+        <p>1.1.0.5: Add SessionStaleSec parameter.</p>
+
         <p>1.1.0.4: Fix bug where OIDs can be polled no slower than PassivePollMSec.</p>
 
         <p>1.1.0.3: Incorporate bug-fixes and device support module for nVent Smart Gateway Protect (SGP) devices
