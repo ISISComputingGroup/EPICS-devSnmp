@@ -1,3 +1,15 @@
+epics-snmp (1.1.0.6) unstable; urgency=medium
+  * Add improved string delimiter handling
+  * ifdef handling for DES priv protocol disabled in net-snmp
+  * add patches for greater thread safety and sequential connect issues
+
+ -- John Priller <priller@frib.msu.edu>  Mon, 18 Mar 2026 08:00:00 -0500
+
+epics-snmp (1.1.0.5) unstable; urgency=medium
+  * Add snmpSessionStaleSec parameter
+
+ -- John Priller <priller@frib.msu.edu>  Mon, 15 Sep 2023 08:00:00 -0500
+
 epics-snmp (1.1.0.4) unstable; urgency=medium
   * Bug fix for OID poll rate cannot go slower than 2 second
   * Bug fix for polling happening too often
